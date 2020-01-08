@@ -8,7 +8,7 @@ const {
 
 const run = async (workerId, config) => {
   const { memoryUsage } = require('@orbiting/backend-modules-utils')
-  const memoryUsageLogger = memoryUsage.run({ instance: `worker-${workerId}`, intervalSecs: 5 })
+  const memoryUsageLogger = memoryUsage.run({ instance: `worker-${workerId}` })
 
   require('@orbiting/backend-modules-env').config()
 
