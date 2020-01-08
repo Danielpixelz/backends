@@ -1,6 +1,8 @@
 const DEV = process.env.NODE_ENV && process.env.NODE_ENV !== 'production'
 
 const debug = require('debug')('crowdfundings:lib:scheduler')
+const Promise = require('bluebird')
+
 const PgDb = require('@orbiting/backend-modules-base/lib/PgDb')
 const Redis = require('@orbiting/backend-modules-base/lib/Redis')
 const {
@@ -33,7 +35,7 @@ const init = async (_context) => {
   const schedulers = []
 
   schedulers.push(
-    timeScheduler.init({
+    await timeScheduler.init({
       name: 'memberships-givers',
       context,
       runFunc: informGivers,
@@ -44,7 +46,7 @@ const init = async (_context) => {
   )
 
   schedulers.push(
-    intervalScheduler.init({
+    await intervalScheduler.init({
       name: 'memberships-owners',
       context,
       runFunc: membershipsOwnersHandler,
@@ -54,7 +56,7 @@ const init = async (_context) => {
   )
 
   schedulers.push(
-    timeScheduler.init({
+    await timeScheduler.init({
       name: 'winback',
       context,
       runFunc: informCancellers,
@@ -66,7 +68,7 @@ const init = async (_context) => {
   )
 
   schedulers.push(
-    intervalScheduler.init({
+    await intervalScheduler.init({
       name: 'changeover-deactivate',
       context,
       runFunc: async (args, context) => {
@@ -80,7 +82,7 @@ const init = async (_context) => {
 
   // remove after campaign
   schedulers.push(
-    intervalScheduler.init({
+    await intervalScheduler.init({
       name: 'stats-cache',
       context,
       runFunc: (args, context) =>
@@ -94,9 +96,7 @@ const init = async (_context) => {
   )
 
   const close = async () => {
-    await Promise.all(
-      schedulers.map(scheduler => scheduler.close())
-    )
+    await Promise.map(schedulers, scheduler => scheduler.close())
     await Promise.all([
       PgDb.disconnect(pgdb),
       Redis.disconnect(redis)

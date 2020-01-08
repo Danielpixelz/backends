@@ -33,9 +33,9 @@
     "yargs": "^14.2.0"
   },
   "scripts": {
-    "dev": "NODE_ENV=development nodemon $NODE_DEBUG_OPTION -w ../../packages -w express -w graphql -w lib -w modules -w .env -w package.json -w ../yarn.lock -w server.js -w index.js index.js",
+    "dev": "NODE_ENV=development nodemon $NODE_DEBUG_OPTION -w ../../packages -w express -w graphql -w lib -w modules -w .env -w package.json -w ../yarn.lock -w web.js -w index.js index.js",
     "inspect": "NODE_DEBUG_OPTION=--inspect yarn run dev",
-    "start": "node index.js",
+    "start": "node web.js",
     "db:seed:redirections": "cat ../../packages/redirections/seeds/seeds.example.json | node ../../packages/redirections/seeds/seed.js",
     "db:seed:users": "cat ../../packages/auth/seeds/seeds.example.json | node ../../packages/auth/seeds/seed.js --truncate",
     "db:seed:crowdfundings": "seeds/script/seed.js"
