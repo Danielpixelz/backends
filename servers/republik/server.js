@@ -27,23 +27,16 @@ const loaderBuilders = {
   ...require('@orbiting/backend-modules-cards/loaders')
 }
 
-const { AccessScheduler, graphql: access } = require('@orbiting/backend-modules-access')
-const { PreviewScheduler, preview: previewLib } = require('@orbiting/backend-modules-preview')
+const { graphql: access } = require('@orbiting/backend-modules-access')
+const { preview: previewLib } = require('@orbiting/backend-modules-preview')
 
-const MembershipScheduler = require('./modules/crowdfundings/lib/scheduler')
 const mail = require('./modules/crowdfundings/lib/Mail')
 
 const {
   LOCAL_ASSETS_SERVER,
   MAIL_EXPRESS_RENDER,
-  SEARCH_PG_LISTENER,
-  NODE_ENV,
-  ACCESS_SCHEDULER,
-  PREVIEW_SCHEDULER,
-  MEMBERSHIP_SCHEDULER
+  SEARCH_PG_LISTENER
 } = process.env
-
-const DEV = NODE_ENV && NODE_ENV !== 'production'
 
 const start = async () => {
   const server = await run()
@@ -144,7 +137,7 @@ const run = async (workerId, config) => {
 }
 
 // in cluster mode, this runs before run otherwise after
-const runOnce = async (...args) => {
+const runOnce = async () => {
   if (cluster.isWorker) {
     throw new Error('runOnce must only be called on cluster.isMaster')
   }
@@ -156,39 +149,9 @@ const runOnce = async (...args) => {
     searchNotifyListener = await SearchNotifyListener.start()
   }
 
-  let accessScheduler
-  if (ACCESS_SCHEDULER === 'false' || (DEV && ACCESS_SCHEDULER !== 'true')) {
-    console.log('ACCESS_SCHEDULER prevented scheduler from begin started',
-      { ACCESS_SCHEDULER, DEV }
-    )
-  } else {
-    accessScheduler = await AccessScheduler.init({ t, mail })
-  }
-
-  let previewScheduler
-  if (PREVIEW_SCHEDULER === 'false' || (DEV && PREVIEW_SCHEDULER !== 'true')) {
-    console.log('PREVIEW_SCHEDULER prevented scheduler from begin started',
-      { PREVIEW_SCHEDULER, DEV }
-    )
-  } else {
-    previewScheduler = await PreviewScheduler.init({ t, mail })
-  }
-
-  let membershipScheduler
-  if (MEMBERSHIP_SCHEDULER === 'false' || (DEV && MEMBERSHIP_SCHEDULER !== 'true')) {
-    console.log('MEMBERSHIP_SCHEDULER prevented scheduler from begin started',
-      { MEMBERSHIP_SCHEDULER, DEV }
-    )
-  } else {
-    membershipScheduler = await MembershipScheduler.init({ t, mail })
-  }
-
   const close = async () => {
     slackGreeter && await slackGreeter.close()
     searchNotifyListener && await searchNotifyListener.close()
-    accessScheduler && await accessScheduler.close()
-    previewScheduler && await previewScheduler.close()
-    membershipScheduler && await membershipScheduler.close()
   }
 
   process.once('SIGTERM', close)
