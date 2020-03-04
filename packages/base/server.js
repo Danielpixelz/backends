@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const debug = require('debug')('base:server')
 const { createServer } = require('http')
 const checkEnv = require('check-env')
 const compression = require('compression')
@@ -74,6 +75,11 @@ const start = async (
 
   // add req._log()
   server.use(requestLog)
+
+  server.use((req, res, next) => {
+    debug(`[${workerId || 'n/a'}] incoming request on "${connectionContext.pgdb.pool.options.application_name}"`)
+    next()
+  })
 
   // monitor timeouts
   if (REQ_TIMEOUT) {
